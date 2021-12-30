@@ -1,16 +1,38 @@
-# This is a sample Python script.
+class Board:
+    def __init__(self, size):
+        self.size = size
+        self.board = [None]*size
 
-# Press Maj+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+    def updateBoard(self, player, position):
+        self.board[position] = player
+
+    def checkStatus(self):
+        if self.board[0] == 0:
+            return 0
+        elif self.board[0] == 1:
+            return 1
+        else:
+            return -1
 
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+class Node:
+    def __init__(self, value, parent):
+        self.value = value
+        self.parent = parent
+        self.childArray = []
+
+    def addChildrens(self, value):
+        self.childArray.append(Node(value, self.value))
 
 
-# Press the green button in the gutter to run the script.
+
 if __name__ == '__main__':
-    print_hi('PyCharm')
+    jeu = Board(4)
+    jeu.updateBoard(1,0)
+    #print(jeu.checkStatus())
+    root = Node(2, None)
+    root.addChildrens(6)
+    root.addChildrens(4)
+    print(root.value)
+    print(root.childArray[0].value)
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
