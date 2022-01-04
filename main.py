@@ -97,19 +97,5 @@ if __name__ == '__main__':
 """
 alternator = alternate()
     player = alternator.__next__()
-    
-    jeu = Board(4)
-    jeu.updateBoard(1,0)
-    node1 = Node(1)
-    nodea = node1
-    for i in range(5):
-        nodeb = nodea.expand()
-        nodea = nodeb
 
-    print(node1.move)
-    print(node1.childArray[0].move)
-    print(node1.childArray[0].childArray[0].move)
-    print(node1.childArray[0].childArray[0].childArray[0].move)
-    print(node1.childArray[0].childArray[0].childArray[0].childArray[0].move)
-    print(node1.childArray[0].childArray[0].childArray[0].childArray[0].childArray[0].move)
 """
