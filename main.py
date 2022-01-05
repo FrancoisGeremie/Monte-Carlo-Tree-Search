@@ -14,20 +14,13 @@ class Node:
         self.numberOfWins = 0
         self.possibleActions = None
 
-    def updatePossibleActions(self):
-        emptySlots = []
-        for i in range(self.size):
-            if len(emptySlots) > 3:
-                break
-            if self.board[i] == 0:
-                emptySlots.append(i)
-        random.shuffle(emptySlots)
-        print(emptySlots)
-        self.possibleActions = emptySlots
-
     def select(self, c, t):
-        listUCB = [((x.numberOfWins/x.numberOfVisits)+c*np.sqrt(np.log(t)/x.numberOfVisits)) for x in self.childArray]
-        print(listUCB)
+        listUCB = []
+        for child in self.childArray:
+            if child.numberOfVisits == 0:
+                listUCB.append(1000000) #on met un très grand nombre pour être sûr que cet enfant soit visité au moins une fois
+            else:
+                listUCB.append((child.numberOfWins / child.numberOfVisits) + c * np.sqrt(np.log(t) / child.numberOfVisits))
         return self.childArray[np.argmax(listUCB)]
 
     def expand(self):
@@ -41,25 +34,30 @@ class Node:
         simulation = deepcopy(self.board)
         toFill = [i for i, item in enumerate(self.board) if item == 0]
         while toFill:
-            simulation[toFill.pop()] = randint(3,4)
-        return determineWinner(simulation)
+            simulation[toFill.pop()] = randint(1, 2)
+        c1 = simulation.count(1)
+        c2 = simulation.count(2)
+        if c1 > c2:
+            return 1
+        else:
+            return 2
 
     def backPropagate(self, winner):
         self.numberOfVisits += 1
         if winner == 1:
             self.numberOfWins += 1
-        print(self.numberOfVisits)
         if self.parent:
             self.parent.backPropagate(winner)
 
-
-def determineWinner(simulation):
-    c1 = simulation.count(3)
-    c2 = simulation.count(4)
-    if c1 > c2:
-        return 1
-    else:
-        return 2
+    def updatePossibleActions(self):
+        emptySlots = []
+        for i in range(self.size):
+            if len(emptySlots) > 1:
+                break
+            if self.board[i] == 0:
+                emptySlots.append(i)
+        random.shuffle(emptySlots)
+        self.possibleActions = emptySlots
 
 
 def alternate():
@@ -69,10 +67,10 @@ def alternate():
 
 
 if __name__ == '__main__':
-    board = [0] * 9
+    board = [0] * 3
     root = Node(board)
 
-    time = 2
+    time = 400
     t = 0
     for i in range(time):
         t += 1
@@ -83,19 +81,18 @@ if __name__ == '__main__':
         node.updatePossibleActions()
         while node.possibleActions:
             node.expand()
-        a = randint(0, len(node.childArray)-1)
-        print(a)
-        child = node.childArray[a]
-        w = child.simulate()
         for x in node.childArray:
             print(x.board)
-        print("winner : " + str(w))
+        a = randint(0, len(node.childArray)-1)
+        print("choix : " + str(a))
+        child = node.childArray[a]
+        w = child.simulate()
+        #print("winner : " + str(w))
         child.backPropagate(w)
-
+        print("temps : " + str(t))
 
 
 """
 alternator = alternate()
     player = alternator.__next__()
-
 """
