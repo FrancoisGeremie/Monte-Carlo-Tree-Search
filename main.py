@@ -37,11 +37,6 @@ class Node:
             tempoNode.randomMove()
         return checkStatus(tempoNode.board)
 
-    def randomMove(self):
-        self.updatePossibleActions()
-        self.board[self.possibleActions.pop()] = self.player
-        self.player = 3-self.player
-
     def backPropagate(self, winner):
         self.numberOfVisits += 1
         #print(self.board, self.numberOfVisits)
@@ -60,7 +55,10 @@ class Node:
         random.shuffle(emptySlots)
         self.possibleActions = emptySlots
 
-
+    def randomMove(self):
+        self.updatePossibleActions()
+        self.board[self.possibleActions.pop()] = self.player
+        self.player = 3-self.player
 
 
 def checkStatus(board):
