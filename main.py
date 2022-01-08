@@ -29,7 +29,7 @@ class Node:
         childNode = Node(deepcopy(self.board), player=3-self.player, parent=self) #si on met direct self.board, l'enfant et le parent auront tous les 2 la même array avec 2 références différentes. La modification dans un des objets impactera l'array et cette modification sera visible dans l'autre objet
         childNode.board[action] = self.player
         self.childArray.append(childNode)
-        return childNode #comment le return sait que childNode est dans self ? Il ne retourne pas juste un objet ?
+        return childNode
 
     def simulate(self):
         tempoNode = Node(deepcopy(self.board), player=3-self.player)
@@ -39,7 +39,6 @@ class Node:
 
     def backPropagate(self, winner):
         self.numberOfVisits += 1
-        #print(self.board, self.numberOfVisits)
         if winner == self.player:
             self.numberOfWins += 1
         if self.parent:
@@ -47,9 +46,8 @@ class Node:
 
     def updatePossibleActions(self):
         emptySlots = []
+        colonnes = [0] * 7
         for i in range(self.size):
-            if len(emptySlots) > 1:
-                break
             if self.board[i] == 0:
                 emptySlots.append(i)
         random.shuffle(emptySlots)
@@ -63,7 +61,7 @@ class Node:
 
 def checkStatus(board):
     l = len(board)
-    if board[l - 2] == board[l - 1] == 1 or board[l - 2] == board[l - 1] == 2:  # le joueur qui met ses pionts sur les 2 dernières cases gagne
+    if board[l - 2] == board[l - 1] != 0:  # le joueur qui met ses pionts sur les 2 dernières cases gagne
         return board[l - 2]
     elif 0 in board: #la partie n'est pas finie
         return -1
@@ -74,21 +72,17 @@ def checkStatus(board):
 def bestMove(board, player):
     c = np.sqrt(2)
     root = Node(board, player=player)
-    time = 4
+    time = 400
 
     for t in range(time):
         node = root
         while node.childArray:
             node = node.select(c, t)
-        print("selected " + str(node.board))
         node.updatePossibleActions()
         if node.possibleActions:
             while node.possibleActions:
                 node.expand()
-            for x in node.childArray:
-                print(x.board)
             a = randint(0, len(node.childArray) - 1)
-            print("choix : " + str(a))
             child = node.childArray[a]
             w = child.simulate()
         else:  # la simulation est arrivée à un noeud final qui ne peut pas être expand ni simulé car il correspond à un état final du jeu
@@ -106,7 +100,7 @@ if __name__ == '__main__':
     for i in range(9):
         board = bestMove(board, currentPlayer)
         currentPlayer = 3 - currentPlayer
-        print("player : " + str(currentPlayer))
+        #print("player : " + str(currentPlayer))
         if checkStatus(board) != -1:
             break
 
