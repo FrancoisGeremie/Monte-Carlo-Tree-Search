@@ -84,7 +84,7 @@ class Node:
                 return board[move]
         # check ligne
         for i in range(move - 3, move + 1):
-            if (math.floor(i / 7) < math.floor(move / 7)) or (math.floor(move / 7) < math.floor((i + 3) / 7)):  # on ne vérifie que sur une même ligne de board
+            if (math.floor(i / 7) < math.floor(move / 7)) or (math.floor(move / 7) < math.floor((i + 3) / 7)):  # on ne vérifie pas avec les éléments des lignes du dessous ou du dessus du board
                 continue
             if board[i] == board[i + 1] == board[i + 2] == board[i + 3]:
                 return board[move]
@@ -132,3 +132,4 @@ if __name__ == '__main__':
     for i in range(5, -1, -1):
         print(board[0 + 7 * i: 7 + 7 * i])
     print("winner is : " + str(bestNode.checkStatus()) + ", winner move : " + str(bestNode.move))
+
