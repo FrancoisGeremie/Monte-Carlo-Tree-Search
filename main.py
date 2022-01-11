@@ -8,7 +8,6 @@ import math
 class Node:
     def __init__(self, board, player=None, parent=None, move=None):
         self.board = board
-        self.size = len(board)
         self.player = player
         self.parent = parent
         self.childArray = []
@@ -31,7 +30,6 @@ class Node:
         childNode = Node(deepcopy(self.board), player=3-self.player, parent=self, move=action)  # si on met simplement self.board, l'enfant et le parent auront tous les 2 la même array avec 2 références différentes. La modification dans un des objets impactera l'array et cette modification sera visible dans l'autre objet
         childNode.board[action] = self.player
         self.childArray.append(childNode)
-        return childNode
 
     def simulate(self):
         tempoNode = Node(deepcopy(self.board), player=3-self.player, move=self.move)
@@ -46,20 +44,20 @@ class Node:
         if self.parent:
             self.parent.backPropagate(winner)
 
-    def updatePossibleActions(self):
-        emptySlots = [-7, -6, -5, -4, -3, -2, -1]
-        for i in range(self.size):
-            if self.board[i] != 0:
-                emptySlots[i % 7] = i  # pour chaque colonne, on note la plus haute case non vide
-        emptySlots[:] = [x + 7 for x in emptySlots if x < 35]  # si aucune case n'est remplie, emptySlots = [0,1,2,3,4,5,6]. Si > 34, on ne peut pas remplir la case du dessus
-        random.shuffle(emptySlots)
-        self.possibleActions = emptySlots
-
     def randomMove(self):
         self.updatePossibleActions()
         self.move = self.possibleActions.pop()
         self.board[self.move] = self.player
         self.player = 3-self.player
+
+    def updatePossibleActions(self):
+        emptySlots = [-7, -6, -5, -4, -3, -2, -1]
+        for i in range(len(board)):
+            if self.board[i] != 0:
+                emptySlots[i % 7] = i  # pour chaque colonne, on note la plus haute case non vide
+        emptySlots[:] = [x + 7 for x in emptySlots if x < 35]  # si aucune case n'est remplie, emptySlots = [0,1,2,3,4,5,6]. Si > 34, on ne peut pas remplir la case du dessus
+        random.shuffle(emptySlots)
+        self.possibleActions = emptySlots
 
     def checkStatus(self):
         move = self.move
@@ -102,13 +100,11 @@ def bestMove(board, player):
         node = root
         while node.childArray:
             node = node.select(c, t)
-        if node.checkStatus() == -1:  # le board n'est ni une victoire, ni une égalité
+        if node.checkStatus() == -1:  # si le board n'est ni une victoire, ni une égalité
             node.updatePossibleActions()
             while node.possibleActions:
                 node.expand()
-        if len(node.childArray) != 0:  # si le nœud a des enfants, on en choisi un aléatoirement
-            randomChild = randint(0, len(node.childArray) - 1)
-            child = node.childArray[randomChild]
+            child = node.childArray[randint(0, len(node.childArray) - 1)]  # on choisit un enfant aléatoirement
         else:
             child = node  # sinon (nœud correspondant à une victoire ou une égalité), on évalue le même nœud
         w = child.simulate()
@@ -132,4 +128,3 @@ if __name__ == '__main__':
     for i in range(5, -1, -1):
         print(board[0 + 7 * i: 7 + 7 * i])
     print("winner is : " + str(bestNode.checkStatus()) + ", winner move : " + str(bestNode.move))
-
