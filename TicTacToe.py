@@ -22,7 +22,7 @@ class Node:
         listUCB = []
         for child in self.childArray:
             if child.numberOfVisits == 0:
-                listUCB.append(1000000000)  # on met un très grand nombre pour être sûr que cet enfant soit visité au moins une fois
+                listUCB.append(1000000)  # on met un très grand nombre pour être sûr que cet enfant soit visité au moins une fois
             else:
                 listUCB.append((child.numberOfWins / child.numberOfVisits) + c * np.sqrt(np.log(t) / child.numberOfVisits))
         return self.childArray[np.argmax(listUCB)]
@@ -35,7 +35,7 @@ class Node:
 
     def simulate(self):
         if self.checkStatus() == 3 - self.rootPlayer:  # l'adversaire gagne avec cette board
-            self.parent.numberOfWins = -1000000000  # le move précédent du joueur a conduit à cette configuration. Inutile d'explorer les autres enfants car la configuartion est trop dangeureusue
+            self.parent.numberOfWins = -1000000  # le move précédent du joueur a conduit à cette configuration. Inutile d'explorer les autres enfants car la configuartion est trop dangeureusue
         tempoNode = Node(deepcopy(self.board), rootPlayer=self.rootPlayer, player=3 - self.player, move=self.move)
         while tempoNode.checkStatus() == -1:
             tempoNode.randomMove()
@@ -55,11 +55,10 @@ class Node:
         self.player = 3-self.player
 
     def updatePossibleActions(self):
-        emptySlots = [-7, -6, -5, -4, -3, -2, -1]
+        emptySlots = []
         for i in range(len(board)):
-            if self.board[i] != 0:
-                emptySlots[i % 7] = i  # pour chaque colonne, on note la plus haute case non vide
-        emptySlots[:] = [x + 7 for x in emptySlots if x < 35]  # si aucune case n'est remplie, emptySlots = [0,1,2,3,4,5,6]. Si > 34, on ne peut pas remplir la case du dessus
+            if self.board[i] == 0:
+                emptySlots.append(i)
         random.shuffle(emptySlots)
         self.possibleActions = emptySlots
 
@@ -68,35 +67,25 @@ class Node:
         board = self.board
         if move is None:  # pour le nœud root, aucun pion n'a été placé par rapport à l'état précédent
             return -1
-        # check colonne
-        if move > 20:
-            if board[move] == board[move-7] == board[move-14] == board[move-21]:
-                return board[move]
-        # check diagonale /
-        for i in range(move - 24, move + 1, 8):
-            if (move % 7 < i % 7) or (move % 7 > (i + 24) % 7) or i < 0 or i + 24 > 41:  # une diagonale / ne peut pas commencer du côté droit du board et finir du côté gauche
-                continue
-            if board[i] == board[i + 8] == board[i + 16] == board[i + 24]:
-                return board[move]
-        # check diagonale \
-        for i in range(move - 18, move + 1, 6):
-            if (move % 7 > i % 7) or (move % 7 < (i + 18) % 7) or i < 0 or i + 18 > 41:  # une diagonale \ ne peut pas commencer du côté gauche du board et finir du côté droit
-                continue
-            if board[i] == board[i + 6] == board[i + 12] == board[i + 18]:
-                return board[move]
-        # check ligne
-        for i in range(move - 3, move + 1):
-            if (math.floor(i / 7) < math.floor(move / 7)) or (math.floor(move / 7) < math.floor((i + 3) / 7)):  # on ne vérifie pas avec les éléments des lignes du dessous ou du dessus du board
-                continue
-            if board[i] == board[i + 1] == board[i + 2] == board[i + 3]:
-                return board[move]
+        #combinaisons
+        combinaisons = [[0, 1, 2],
+                        [3, 4, 5],
+                        [6, 7, 8],
+                        [0, 3, 6],
+                        [1, 4, 7],
+                        [2, 5, 8],
+                        [0, 4, 8],
+                        [2, 4, 6]]
+        for c in combinaisons:
+            if board[c[0]] == board[c[1]] == board[c[2]] and board[c[0]] != 0:
+                return board[c[0]]
         if 0 in board:  # il y a encore des cases vides et aucun gagnant
             return -1
         return 0  # égalité
 
 
 def bestMove(board, player, time):
-    c = 4
+    c = np.sqrt(2)
     root = Node(board, rootPlayer=player, player=3-player)
 
     for t in range(time):
@@ -117,8 +106,8 @@ def bestMove(board, player, time):
 
 
 if __name__ == '__main__':
-    timeVector = np.array([10, 100000])
-    nbrRuns = 10
+    timeVector = np.array([10, 100, 1000, 5000])
+    nbrRuns = 1000
     bilan = np.zeros(nbrRuns, dtype=int)
     bilanWin1 = np.zeros(len(timeVector), dtype=int)
     bilanWin2 = np.zeros(len(timeVector), dtype=int)
@@ -127,8 +116,7 @@ if __name__ == '__main__':
     bilanCasesVides = np.zeros(len(timeVector), dtype=float)
 
     currentPlayer = 1
-    size = 42
-
+    size = 9
 
     for i in range(len(timeVector)):
         print(timeVector[i])
@@ -144,6 +132,7 @@ if __name__ == '__main__':
                     break
             bilan[j] = bestNode.checkStatus()
             bilanVide[j] = board.count(0)
+            #print(bilan)
 
         bilanWin1[i] = np.count_nonzero(bilan == 1)
         bilanWin2[i] = np.count_nonzero(bilan == 2)
@@ -153,11 +142,11 @@ if __name__ == '__main__':
         bilan = np.zeros(nbrRuns)
         bilanVide = np.zeros(nbrRuns)
 
+
+
         #print(f'Pourcentage de cases vides : {np.mean(bilanCasesVides)/size}')
         #print(f'{nbrRuns} Runs à {time} itérations - victoires de 1 : {bilan.count(1)}, victoires de 2 : {bilan.count(2)}, égalités : {bilan.count(-1)}')
 
-    for i in range(5, -1, -1):
-        print(board[0 + 7 * i: 7 + 7 * i])
     print(bilanWin1, bilanWin2, bilanTie, bilanCasesVides)
 
     default_x_ticks = range(len(timeVector))
